@@ -139,7 +139,7 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         //super.onBackPressed();
         if (editText.getText().toString().equals("")) {
-            final String[] items = {"拨号", "短信", "微信", "QQ"};
+            final String[] items = {"拨号", "短信", "微信", "QQ", "相机"};
             new AlertDialog.Builder(this)
                     /*.setIcon(R.mipmap.ic_launcher)
                     .setTitle("列表dialog")*/
@@ -174,6 +174,13 @@ public class MainActivity extends Activity {
                                 case 3:
                                     try {
                                         startActivity(getPackageManager().getLaunchIntentForPackage("com.tencent.mobileqq"));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    break;
+                                case 4:
+                                    try {
+                                        startActivity(new Intent().setAction(INTENT_ACTION_STILL_IMAGE_CAMERA));
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
