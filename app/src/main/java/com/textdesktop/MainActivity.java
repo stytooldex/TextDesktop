@@ -30,7 +30,6 @@ public class MainActivity extends Activity {
     private MyAdapter adapter;
     private MyApplication app;
     private ClearEditText editText;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
