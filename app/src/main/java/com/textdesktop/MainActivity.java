@@ -38,9 +38,6 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         KeyboardUtils.fixAndroidBug5497(this);
         KeyboardUtils.fixSoftInputLeaks(this);
-        Intent intent1 = new Intent(); //调用照相机
-        intent1.setAction(INTENT_ACTION_STILL_IMAGE_CAMERA);
-        startActivity(intent1);
         editText = findViewById(R.id.editTextPhone);
         editText.setShakeAnimation();
         GridView gridView = findViewById(R.id.gridView);
