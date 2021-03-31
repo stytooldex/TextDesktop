@@ -4,25 +4,25 @@ import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 public class MyApplication extends Application {
     private List<AppInfo> name;
-    @SuppressLint("StaticFieldLeak")
-    private static Context context;
+    private static WeakReference<Context> context;
 
     @Override
     public void onCreate() {
         super.onCreate();
         setName(null);
 
-        if (getContext() == null) {
-            context = getApplicationContext();
-        }
+        //if (getContext() == null) {
+            context = new WeakReference<>(getApplicationContext());
+        //}
     }
 
     public static Context getContext() {
-        return context;
+        return context.get();
     }
 
     public List<AppInfo> getName() {

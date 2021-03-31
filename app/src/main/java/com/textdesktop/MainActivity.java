@@ -1,9 +1,13 @@
 package com.textdesktop;
 
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ListActivity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -13,10 +17,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.GridView;
+import android.widget.FrameLayout;
+import android.widget.ListView;
 
+import com.textdesktop.utilsX.Tools;
 import com.textdesktop.widget.ClearEditText;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.provider.MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA;
@@ -26,10 +34,12 @@ import static com.textdesktop.utilsX.DangerousUtils.reboot2Recovery;
 import static com.textdesktop.utilsX.DangerousUtils.shell;
 import static com.textdesktop.utilsX.DangerousUtils.shutdown;
 
-public class MainActivity extends Activity {
-    private MyAdapter adapter;
+public class MainActivity extends ListActivity {
+    //private MyAdapter adapter;
     private MyApplication app;
     private ClearEditText editText;
+
+    @SuppressWarnings("unchecked")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,56 +49,22 @@ public class MainActivity extends Activity {
         KeyboardUtils.fixSoftInputLeaks(this);
         editText = findViewById(R.id.editTextPhone);
         editText.setShakeAnimation();
-        GridView gridView = findViewById(R.id.gridView);
-        Intent intent = new Intent();
-        intent.setAction("android.intent.action.MAIN");
-        intent.addCategory("android.intent.category.LAUNCHER");
-        final List<AppInfo> list = AppInfoUtil.getInstance(this).getAppInfoByIntent(intent);
-        adapter = new MyAdapter(list, this, getApplication());
-        gridView.setTextFilterEnabled(true);
-        gridView.setAdapter(adapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (editText.getText().toString().equals("")) {
-                    String packager = list.get(position).getPackageName();
-                    Intent intent = getPackageManager().getLaunchIntentForPackage(packager);
-                    startActivity(intent);
-                } else {
-                    app = (MyApplication) getApplication();
-                    String packager = app.getName().get(position).getPackageName();
-                    Intent aPackage = getPackageManager().getLaunchIntentForPackage(packager);
-                    startActivity(aPackage);
-                }
-            }
-        });
-        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                if (editText.getText().toString().equals("")) {
-                    new top(MainActivity.this, view, position, list, adapter);
-                } else {
-                    app = (MyApplication) getApplication();
-                    new top(MainActivity.this, view, position, app.getName(), adapter);
-                }
-                return true;
-            }
-        });
-        editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-                // When user change the text
-                adapter.getFilter().filter(cs);
-            }
+        new DownTask(MainActivity.this).execute();
+    }
 
-            @Override
-            public void beforeTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable arg0) {
-            }
-        });
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        if (editText.getText().toString().equals("")) {
+            String packager = Tools.getApp().get(position).getPackageName();
+            Intent intent = getPackageManager().getLaunchIntentForPackage(packager);
+            startActivity(intent);
+        } else {
+            app = (MyApplication) getApplication();
+            String packager = app.getName().get(position).getPackageName();
+            Intent aPackage = getPackageManager().getLaunchIntentForPackage(packager);
+            startActivity(aPackage);
+        }
     }
 
     @Override
@@ -105,18 +81,24 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case 0:
-                final ClearEditText editText1 = new ClearEditText(this);
+                final ClearEditText text = new ClearEditText(this);
+                FrameLayout layout = new FrameLayout(this);
+                layout.setPadding(16, 0, 16, 0);
+                layout.addView(text);
                 new AlertDialog.Builder(this)
                         .setTitle("请输入")
-                        .setIcon(android.R.drawable.ic_dialog_info)
-                        .setView(editText1)
-                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        .setIcon(R.mipmap.ic_launcher)
+                        .setView(layout)
+                        .setPositiveButton(getString(android.R.string.ok), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                shell(editText1.getText().toString());
+                                if (!text.getText().toString().equals("")) {
+                                    shell(text.getText().toString());
+                                }
                             }
                         })
                         .show();
+
                 break;
             case 1:
                 shutdown();
@@ -191,6 +173,112 @@ public class MainActivity extends Activity {
             editText.setText("");
         }
 
+    }
+
+    private final BroadcastReceiver installedReceiver = new BroadcastReceiver() {
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("android.intent.action.PACKAGE_ADDED")) {
+                String packageName = intent.getDataString();
+                System.out.println("安装了:" + packageName + "包名的程序");
+
+                new DownTask(MainActivity.this).execute();
+            }
+            if (intent.getAction().equals("android.intent.action.PACKAGE_REMOVED")) {
+                String packageName = intent.getDataString();
+                System.out.println("卸载了:" + packageName + "包名的程序");
+                new DownTask(MainActivity.this).execute();
+            }
+        }
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.intent.action.PACKAGE_ADDED");
+        filter.addAction("android.intent.action.PACKAGE_REMOVED");
+        filter.addDataScheme("package");
+        registerReceiver(installedReceiver, filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (installedReceiver != null) {
+            this.unregisterReceiver(installedReceiver);
+        }
+        super.onDestroy();
+    }
+
+    @SuppressWarnings("deprecation")
+    private static class DownTask extends AsyncTask<List<AppInfo>, Integer, List<AppInfo>> {
+        private final WeakReference<MainActivity> activityWeakReference;
+        private MyAdapter myAdapter;
+
+        DownTask(MainActivity activity) {
+            activityWeakReference = new WeakReference<>(activity);
+        }
+
+        @SafeVarargs
+        @Override
+        protected final List<AppInfo> doInBackground(List<AppInfo>... lists) {
+            final List<AppInfo> list = Tools.getApp();
+            for (final AppInfo i : list) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                publishProgress(list.indexOf(i));
+            }
+            return list;
+        }
+
+        @Override
+        protected void onPostExecute(List<AppInfo> result) {
+            super.onPostExecute(result);
+            myAdapter = new MyAdapter(result, activityWeakReference.get(), activityWeakReference.get().getApplication());
+            activityWeakReference.get().setListAdapter(myAdapter);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            activityWeakReference.get().setTitle(activityWeakReference.get().getString(R.string.app_name) + "(" + values[0] + ")");
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            activityWeakReference.get().editText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                    myAdapter.getFilter().filter(cs);
+                }
+
+                @Override
+                public void beforeTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                }
+
+                @Override
+                public void afterTextChanged(Editable arg0) {
+                }
+            });
+            activityWeakReference.get().getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    if (activityWeakReference.get().editText.getText().toString().equals("")) {
+                        new top(activityWeakReference.get(), view, position, Tools.getApp(), myAdapter);
+                    } else {
+                        MyApplication application = (MyApplication) activityWeakReference.get().getApplication();
+                        new top(activityWeakReference.get(), view, position, application.getName(), myAdapter);
+                    }
+                    return true;
+                }
+            });
+        }
     }
 
     @Override
