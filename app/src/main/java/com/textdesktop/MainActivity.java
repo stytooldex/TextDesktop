@@ -46,7 +46,7 @@ public class MainActivity extends ListActivity {
         KeyboardUtils.fixSoftInputLeaks(this);
         editText = findViewById(R.id.editTextPhone);
         editText.setShakeAnimation();
-        new DownTask(MainActivity.this).execute();
+        new DownTask(MainActivity.this).execute(Tools.getApp());
     }
 
     @Override
@@ -216,16 +216,15 @@ public class MainActivity extends ListActivity {
         @SafeVarargs
         @Override
         protected final List<AppInfo> doInBackground(List<AppInfo>... lists) {
-            final List<AppInfo> list = Tools.getApp();
-            for (final AppInfo i : list) {
+            for (final AppInfo i : lists[0]) {
                 try {
                     Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                publishProgress(list.indexOf(i));
+                publishProgress(lists[0].indexOf(i));
             }
-            return list;
+            return lists[0];
         }
 
         @Override
