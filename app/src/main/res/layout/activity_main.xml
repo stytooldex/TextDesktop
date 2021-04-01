@@ -20,5 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:divider="#10000000"
+        android:dividerHeight="4dp"
         tools:context=".MainActivity" />
 </LinearLayout>

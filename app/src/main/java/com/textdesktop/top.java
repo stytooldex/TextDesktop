@@ -2,16 +2,16 @@ package com.textdesktop;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import java.util.List;
+
+import static com.textdesktop.utilsX.apkTools.ApkToo;
 
 public class top {
 
@@ -57,7 +57,7 @@ public class top {
                         break;
                     }
                     case R.id.extractThePackage:
-                        Log.e("TAG", "onMenuItemClick: ");
+                        ApkToo(activity, packageNames.get(position).getPackageName());
                         break;
                 }
                 return false;

@@ -24,7 +24,6 @@ import com.textdesktop.utilsX.Tools;
 import com.textdesktop.widget.ClearEditText;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 import static android.provider.MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA;
@@ -35,8 +34,6 @@ import static com.textdesktop.utilsX.DangerousUtils.shell;
 import static com.textdesktop.utilsX.DangerousUtils.shutdown;
 
 public class MainActivity extends ListActivity {
-    //private MyAdapter adapter;
-    private MyApplication app;
     private ClearEditText editText;
 
     @SuppressWarnings("unchecked")
@@ -60,7 +57,7 @@ public class MainActivity extends ListActivity {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packager);
             startActivity(intent);
         } else {
-            app = (MyApplication) getApplication();
+            MyApplication app = (MyApplication) getApplication();
             String packager = app.getName().get(position).getPackageName();
             Intent aPackage = getPackageManager().getLaunchIntentForPackage(packager);
             startActivity(aPackage);
@@ -118,12 +115,9 @@ public class MainActivity extends ListActivity {
 
     @Override
     public void onBackPressed() {
-        //super.onBackPressed();
         if (editText.getText().toString().equals("")) {
             final String[] items = {"拨号", "短信", "微信", "QQ", "相机"};
             new AlertDialog.Builder(this)
-                    /*.setIcon(R.mipmap.ic_launcher)
-                    .setTitle("列表dialog")*/
                     .setItems(items, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
@@ -206,9 +200,7 @@ public class MainActivity extends ListActivity {
 
     @Override
     protected void onDestroy() {
-        if (installedReceiver != null) {
-            this.unregisterReceiver(installedReceiver);
-        }
+        this.unregisterReceiver(installedReceiver);
         super.onDestroy();
     }
 

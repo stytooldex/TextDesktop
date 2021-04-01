@@ -270,7 +270,7 @@ public class AppInfoUtil {
         }
 
         private final Collator sCollator = Collator.getInstance();
-        private PackageManager mPM;
+        private final PackageManager mPM;
     }
 
     /**
@@ -289,7 +289,7 @@ public class AppInfoUtil {
         }
 
         private final Collator sCollator = Collator.getInstance();
-        private PackageManager mPM;
+        private final PackageManager mPM;
     }
 
 }

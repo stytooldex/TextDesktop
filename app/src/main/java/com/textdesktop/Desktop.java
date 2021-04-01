@@ -1,11 +1,9 @@
 package com.textdesktop;
 
-import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
 public class Desktop {

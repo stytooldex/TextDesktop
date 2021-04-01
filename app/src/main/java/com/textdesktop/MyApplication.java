@@ -1,6 +1,5 @@
 package com.textdesktop;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 
@@ -15,10 +14,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         setName(null);
-
-        //if (getContext() == null) {
-            context = new WeakReference<>(getApplicationContext());
-        //}
+        context = new WeakReference<>(getApplicationContext());
     }
 
     public static Context getContext() {

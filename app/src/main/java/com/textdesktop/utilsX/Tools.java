@@ -1,6 +1,7 @@
 package com.textdesktop.utilsX;
 
 import android.content.Intent;
+import android.widget.Toast;
 
 import com.textdesktop.AppInfo;
 import com.textdesktop.AppInfoUtil;
@@ -15,4 +16,9 @@ public class Tools {
         intent.addCategory("android.intent.category.LAUNCHER");
         return AppInfoUtil.getInstance(MyApplication.getContext()).getAppInfoByIntent(intent);
     }
+
+    public static void toast(String string) {
+        Toast.makeText(MyApplication.getContext(), string, Toast.LENGTH_LONG).show();
+    }
+
 }
